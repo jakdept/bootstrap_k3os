@@ -1,0 +1,9 @@
+requests
+mock
+ansible
+paramiko
+jinja2
+ansible
+six
+nose
+coverage
