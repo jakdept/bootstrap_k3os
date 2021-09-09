@@ -1,0 +1,14 @@
+---
+- name: find latest stable iso url
+  uri:
+    url: "https://api.github.com/repos/rancher/k3os/releases"
+    return_content: yes
+  delegate_to: localhost
+  register: releases
+  failed_when: releases.json | json_query(?prerelease == False) | length() < 1
+
+# - name: download k3os install script
+#   get_url:
+#     mode: 0755
+#     url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
+#     dest: /usr/bin/install-k3os.sh
