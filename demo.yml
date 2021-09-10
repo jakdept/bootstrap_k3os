@@ -1,5 +1,40 @@
 ---
 - hosts: all
-  gather_facts: false
-  roles:
-    - bootstrap_k3os
+  # connection: local
+  gather_facts: true
+  tasks:
+    # populate ssh keys
+    - name: read ssh keys
+      shell: cat /root/.ssh/authorized_keys
+      register: ssh_keys
+      changed_when: false
+
+    - name: get root password hash
+      shell: "cat /etc/shadow | awk -F: '/root/{print $2}'"
+      register: root_hash
+      changed_when: false
+
+    - name: set all facts for bootstrap_k3os
+      set_fact:
+        bootstrap_k3os:
+          arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+          authorized_keys: "{{ ssh_keys.stdout_lines }}"
+          password: "{{ root_hash.stdout }}"
+
+    - name: show all gathered facts
+      debug:
+        var: bootstrap_k3os
+
+    - name: show iso url for {{bootstrap_k3os.arch}}
+      debug:
+        var: bootstrap_k3os.iso_url[bootstrap_k3os.arch]
+
+    # - name: download k3os install script
+    #   get_url:
+    #     mode: 0755
+    #     url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
+    #     dest: /usr/bin/install-k3os.sh
+
+    - name: template out config
+      debug:
+        msg: "{{ lookup('template', './k3os-config.yaml.j2') }}"

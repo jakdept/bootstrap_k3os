@@ -1,0 +1,46 @@
+{% if (bootstrap_k3os.ssh_keys is defined) and bootstrap_k3os.ssh_keys %}
+ssh_authorized_keys: # template this
+{% for ssh_key in bootstrap_k3os.ssh_key %}
+- "{{ ssh_key }}"
+{% endfor %}
+{% endif %}
+write_files: # template this
+- path: /var/lib/connman/default.config
+  owner: root:root
+  content: |-
+    [service_{{ansible_default_ipv4.alias}}]
+    Type=ethernet
+    IPv4={{ ansible_default_ipv4.address }}/{{ ansible_default_ipv4.netmask }}/{{ ansible_default_ipv4.gateway}}
+    IPv6=off
+    MAC={{ ansible_default_ipv4.macaddress }}
+{% if (bootstrap_k3os.nameservers is defined) and bootstrap_k3os.nameservers %}
+  dns_nameservers: # do note, k3os wants dns_nameservers, not nameservers
+{% for nameserver in bootstrap_k3os.nameservers %}
+    Nameservers={{ nameserver }}
+{% endfor %}
+{% endif %}
+hostname: {{ ansible_fqdn}}
+
+k3os:
+  sysctl:
+    kernel.printk: "4 4 1 7"
+    kernel.kptr_restrict: "1"
+{% if (bootstrap_k3os.nameservers is defined) and bootstrap_k3os.nameservers %}
+  dns_nameservers: # do note, k3os wants dns_nameservers, not nameservers
+{% for nameserver in bootstrap_k3os.nameservers %}
+  - {{ nameserver }}
+{% endfor %}
+{% endif %}
+{% if (bootstrap_k3os.timeservers is defined) and bootstrap_k3os.timeservers %}
+  ntp_servers: # template this
+{% for timeserver in bootstrap_k3os.timeservers %}
+  - {{ timeserver }}
+{% endfor %}
+{% endif %}
+  password: {{ bootstrap_k3os.password }}
+  k3s_args:
+  - server
+  - "--disable-agent"
+  taints:
+  - key1=value1:NoSchedule
+  - key1=value1:NoExecute
