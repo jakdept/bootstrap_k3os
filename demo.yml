@@ -38,12 +38,32 @@
       debug:
         var: bootstrap_k3os.iso_url[bootstrap_k3os.arch]
 
-    # - name: download k3os install script
-    #   get_url:
-    #     mode: 0755
-    #     url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
-    #     dest: /usr/bin/install-k3os.sh
+    - name: generate config path
+      ansible.builtin.tempfile:
+        state: file
+        prefix: k3os-config-
+        suffix: .yaml
+      register: config_file
+      changed_when: false
 
-    - name: template out config
-      debug:
-        msg: "{{ lookup('template', './k3os-config.yaml.j2') }}"
+    - name: generate script path
+      ansible.builtin.tempfile:
+        state: file
+        prefix: k3os-install-
+        suffix: .sh
+      register: script_file
+      changed_when: false
+    
+    - name: template out to {{ config_file.path }}
+      ansible.builtin.template:
+        src: k3os-config.yaml.j2
+        dest: "{{ config_file.path }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: download k3os install script to {{ script_file.path }}
+      get_url:
+        mode: 0755
+        url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
+        dest: "{{ script_file.path }}"

@@ -1,5 +1,5 @@
 {% if (bootstrap_k3os.ssh_keys is defined) and bootstrap_k3os.ssh_keys %}
-ssh_authorized_keys: # template this
+ssh_authorized_keys:
 {% for ssh_key in bootstrap_k3os.ssh_keys %}
 - "{{ ssh_key }}"
 {% endfor %}
@@ -14,7 +14,7 @@ write_files: # template this
     IPv6=off
     MAC={{ ansible_default_ipv4.macaddress }}
 {% if (bootstrap_k3os.nameservers is defined) and bootstrap_k3os.nameservers %}
-  dns_nameservers: # do note, k3os wants dns_nameservers, not nameservers
+  dns_nameservers:
 {% for nameserver in bootstrap_k3os.nameservers %}
     Nameservers={{ nameserver }}
 {% endfor %}
@@ -32,7 +32,7 @@ k3os:
 {% endfor %}
 {% endif %}
 {% if (bootstrap_k3os.timeservers is defined) and bootstrap_k3os.timeservers %}
-  ntp_servers: # template this
+  ntp_servers:
 {% for timeserver in bootstrap_k3os.timeservers %}
   - {{ timeserver }}
 {% endfor %}
