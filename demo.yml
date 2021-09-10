@@ -6,20 +6,29 @@
     # populate ssh keys
     - name: read ssh keys
       shell: cat /root/.ssh/authorized_keys
-      register: ssh_keys
+      register: authorized_keys
       changed_when: false
 
     - name: get root password hash
       shell: "cat /etc/shadow | awk -F: '/root/{print $2}'"
       register: root_hash
       changed_when: false
+    
+    - name: get ntp.conf
+      shell: awk '/^pool/ {print $2}' /etc/ntp.conf
+      register: ntp_conf
+      changed_when: false
 
     - name: set all facts for bootstrap_k3os
       set_fact:
         bootstrap_k3os:
           arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
-          authorized_keys: "{{ ssh_keys.stdout_lines }}"
+          ssh_keys: "{{ authorized_keys.stdout_lines }}"
+          timeservers: "{{ ntp_conf.stdout_lines}}"
           password: "{{ root_hash.stdout }}"
+          iso_url: # remove this when going to role
+            amd64: "https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-amd64.iso"
+            arm64: "https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-arm64.iso"
 
     - name: show all gathered facts
       debug:

@@ -1,6 +1,6 @@
 {% if (bootstrap_k3os.ssh_keys is defined) and bootstrap_k3os.ssh_keys %}
 ssh_authorized_keys: # template this
-{% for ssh_key in bootstrap_k3os.ssh_key %}
+{% for ssh_key in bootstrap_k3os.ssh_keys %}
 - "{{ ssh_key }}"
 {% endfor %}
 {% endif %}
