@@ -1,14 +1,79 @@
 ---
-- name: find latest stable iso url
-  uri:
-    url: "https://api.github.com/repos/rancher/k3os/releases"
-    return_content: yes
-  delegate_to: localhost
-  register: releases
-  failed_when: releases.json | json_query(?prerelease == False) | length() < 1
+# populate ssh keys
+- name: read ssh keys
+  shell: cat /root/.ssh/authorized_keys
+  register: authorized_keys
+  changed_when: false
 
-# - name: download k3os install script
-#   get_url:
-#     mode: 0755
-#     url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
-#     dest: /usr/bin/install-k3os.sh
+- name: get root password hash
+  shell: "cat /etc/shadow | awk -F: '/root/{print $2}'"
+  register: root_hash
+  changed_when: false
+
+- name: get ntp.conf
+  shell: awk '/^pool/ {print $2}' /etc/ntp.conf
+  register: ntp_conf
+  changed_when: false
+
+- name: get boot device
+  shell: df -h / | tail -n +2 | awk '{print $1}'
+  register: boot_device
+  changed_when: false
+
+- name: set all facts for bootstrap_k3os
+  set_fact:
+    bootstrap_k3os:
+      arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+      ssh_keys: "{{ authorized_keys.stdout_lines }}"
+      timeservers: "{{ ntp_conf.stdout_lines}}"
+      password: "{{ root_hash.stdout }}"
+      boot_part: "{{ boot_device.stdout }}"
+      iso_url: # remove this when going to role
+        amd64: "{{ bootstrap_k3os.iso_url.amd64 }}"
+        arm64: "{{ bootstrap_k3os.iso_url.arm64 }}"
+
+- name: show all gathered facts
+  debug:
+    var: bootstrap_k3os
+
+- name: show iso url for {{bootstrap_k3os.arch}}
+  debug:
+    var: bootstrap_k3os.iso_url[bootstrap_k3os.arch]
+
+- name: generate config path
+  ansible.builtin.tempfile:
+    state: file
+    prefix: k3os-config-
+    suffix: .yaml
+  register: config_file
+  changed_when: false
+
+- name: template out to {{ config_file.path }}
+  ansible.builtin.template:
+    src: k3os-config.yaml.j2
+    dest: "{{ config_file.path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: download k3os install script to /usr/bin/install.sh
+  get_url:
+    mode: 0755
+    url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
+    dest: /usr/bin/install.sh
+
+- name: run k3os install
+  ansible.builtin.shell:
+    cmd: >
+      /usr/bin/install.sh
+      --takeover
+      --tty ttyS0
+      --config {{ config_file.path }}
+      --no-format
+      {{ bootstrap_k3os.boot_part }}
+      {{ bootstrap_k3os.iso_url[bootstrap_k3os.arch] }}
+  register: install_result
+
+- name: show install output
+  debug:
+    msg: "{{ install_result.stdout }}"
