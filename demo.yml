@@ -31,7 +31,7 @@
           ssh_keys: "{{ authorized_keys.stdout_lines }}"
           timeservers: "{{ ntp_conf.stdout_lines}}"
           password: "{{ root_hash.stdout }}"
-          boot_device: "{{ boot_device.stdout }}"
+          boot_part: "{{ boot_device.stdout }}"
           iso_url: # remove this when going to role
             amd64: https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-amd64.iso
             arm64: https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-arm64.iso
@@ -60,17 +60,24 @@
         group: root
         mode: "0644"
 
-    - name: download k3os install script to {{ script_file.path }}
+    - name: download k3os install script to /usr/bin/install.sh
       get_url:
         mode: 0755
         url: https://raw.githubusercontent.com/rancher/k3os/master/install.sh
         dest: /usr/bin/install.sh
 
-    # - name: run k3os install
-    #   ansible.builtin.shell:
-    #     cmd: >
-    #       /usr/bin/install.sh
-    #       --tty tty1
-    #       --config {{ config_file.path }}
-    #       /dev/vda
-    #       {{ bootstrap_k3os.iso_url[bootstrap_k3os.arch] }}
+    - name: run k3os install
+      ansible.builtin.shell:
+        cmd: >
+          /usr/bin/install.sh
+          --takeover
+          --tty ttyS0
+          --config {{ config_file.path }}
+          --no-format
+          {{ bootstrap_k3os.boot_part }}
+          {{ bootstrap_k3os.iso_url[bootstrap_k3os.arch] }}
+      register: install_result
+    
+    - name: show install output
+      debug:
+        msg: {{ install_result.stdout }}

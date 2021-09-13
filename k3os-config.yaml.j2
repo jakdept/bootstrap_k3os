@@ -31,12 +31,13 @@ k3os:
   - {{ nameserver }}
 {% endfor %}
 {% endif %}
-{% if (bootstrap_k3os.timeservers is defined) and bootstrap_k3os.timeservers %}
+{# {% if (bootstrap_k3os.timeservers is defined) and bootstrap_k3os.timeservers %}
   ntp_servers:
 {% for timeserver in bootstrap_k3os.timeservers %}
   - {{ timeserver }}
 {% endfor %}
 {% endif %}
+#}
   password: {{ bootstrap_k3os.password }}
   k3s_args:
   - server
