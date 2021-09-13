@@ -80,4 +80,9 @@
     
     - name: show install output
       debug:
-        msg: {{ install_result.stdout }}
+        msg: "{{ install_result.stdout }}"
+    
+    - name: reboot into k3os
+      reboot:
+        reboot_timeout: 3600
+
