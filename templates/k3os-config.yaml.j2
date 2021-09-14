@@ -41,7 +41,6 @@ k3os:
   password: {{ bootstrap_k3os.password }}
   k3s_args:
   - server
-  - "--disable-agent"
   taints:
   - key1=value1:NoSchedule
   - key1=value1:NoExecute

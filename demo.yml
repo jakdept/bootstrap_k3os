@@ -8,5 +8,6 @@
         name: bootstrap_k3os
     - name: reboot into k3os
       reboot:
-        reboot_timeout: 3600
+        reboot_timeout: 10
+      failed_when: false
 
