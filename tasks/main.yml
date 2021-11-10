@@ -2,17 +2,26 @@
 # populate ssh keys
 - name: read ssh keys
   shell: cat /root/.ssh/authorized_keys
+  when: ssh_keys is not defined
   register: authorized_keys
   changed_when: false
 
 - name: get root password hash
-  shell: "cat /etc/shadow | awk -F: '/root/{print $2}'"
+  shell: "awk -F: '/root/{print $2}' /etc/shadow"
+  when: password is not defined
   register: root_hash
   changed_when: false
 
 - name: get ntp.conf
   shell: awk '/^pool/ {print $2}' /etc/ntp.conf
+  when: timeservers is not defined
   register: ntp_conf
+  changed_when: false
+
+- name: get nameservers
+  shell: awk '$1 == "nameserver" {print $2}' /etc/resolv.conf
+  when: nameservers is not defined
+  register: nameserver_conf
   changed_when: false
 
 - name: get boot device
@@ -25,6 +34,7 @@
     arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
     ssh_keys: "{{ authorized_keys.stdout_lines }}"
     timeservers: "{{ ntp_conf.stdout_lines}}"
+    nameservers: "{{ nameserver_conf.stdout_lines }}"
     password: "{{ root_hash.stdout }}"
     boot_part: "{{ boot_device.stdout }}"
     iso_url: # remove this when going to role
