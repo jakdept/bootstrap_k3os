@@ -1,6 +1,6 @@
-{% if (bootstrap_k3os.ssh_keys is defined) and bootstrap_k3os.ssh_keys %}
+{% if (ssh_keys is defined) and ssh_keys %}
 ssh_authorized_keys:
-{% for ssh_key in bootstrap_k3os.ssh_keys %}
+{% for ssh_key in ssh_keys %}
 - "{{ ssh_key }}"
 {% endfor %}
 {% endif %}
@@ -13,9 +13,9 @@ write_files: # template this
     IPv4={{ ansible_default_ipv4.address }}/{{ ansible_default_ipv4.netmask }}/{{ ansible_default_ipv4.gateway}}
     IPv6=off
     MAC={{ ansible_default_ipv4.macaddress }}
-{% if (bootstrap_k3os.nameservers is defined) and bootstrap_k3os.nameservers %}
+{% if (nameservers is defined) and nameservers %}
   dns_nameservers:
-{% for nameserver in bootstrap_k3os.nameservers %}
+{% for nameserver in nameservers %}
     Nameservers={{ nameserver }}
 {% endfor %}
 {% endif %}
@@ -25,20 +25,27 @@ k3os:
   sysctl:
     kernel.printk: "4 4 1 7"
     kernel.kptr_restrict: "1"
-{% if (bootstrap_k3os.nameservers is defined) and bootstrap_k3os.nameservers %}
+{% if (nameservers is defined) and nameservers %}
   dns_nameservers: # do note, k3os wants dns_nameservers, not nameservers
-{% for nameserver in bootstrap_k3os.nameservers %}
+{% for nameserver in nameservers %}
   - {{ nameserver }}
 {% endfor %}
 {% endif %}
-{# {% if (bootstrap_k3os.timeservers is defined) and bootstrap_k3os.timeservers %}
+{# {% if (timeservers is defined) and timeservers %}
   ntp_servers:
-{% for timeserver in bootstrap_k3os.timeservers %}
+{% for timeserver in timeservers %}
   - {{ timeserver }}
 {% endfor %}
 {% endif %}
 #}
-  password: {{ bootstrap_k3os.password }}
+  password: {{ password }}
+{% if (k3os_server_url is defined) and k3os_server_url %}
+  server_url: https://{{ k3os_server_url }}:6443
+{% endif %}
+{% if (k3os_token is defined) and k3os_token %}
+  token: {{ k3os_token }}
+{% endif %}
+
   k3s_args:
   - server
   taints:

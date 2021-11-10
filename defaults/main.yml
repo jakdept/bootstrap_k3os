@@ -1,10 +1,9 @@
 ---
-bootstrap_k3os:
-  iso_url:
-    amd64: "https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-amd64.iso"
-    arm64: "https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-arm64.iso"
-  server: true
-  agent: true
-  # token:
-  # join_url:
+iso_url:
+  amd64: "https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-amd64.iso"
+  arm64: "https://github.com/rancher/k3os/releases/download/v0.20.7-k3s1r0/k3os-arm64.iso"
+server: true
+agent: true
+# k3os_token:
+# k3os_server_url:
 # defaults file for bootstrap_k3os
