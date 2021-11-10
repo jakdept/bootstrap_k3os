@@ -22,23 +22,14 @@
 
 - name: set all facts for bootstrap_k3os
   set_fact:
-    bootstrap_k3os:
-      arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
-      ssh_keys: "{{ authorized_keys.stdout_lines }}"
-      timeservers: "{{ ntp_conf.stdout_lines}}"
-      password: "{{ root_hash.stdout }}"
-      boot_part: "{{ boot_device.stdout }}"
-      iso_url: # remove this when going to role
-        amd64: "{{ bootstrap_k3os.iso_url.amd64 }}"
-        arm64: "{{ bootstrap_k3os.iso_url.arm64 }}"
-
-- name: show all gathered facts
-  debug:
-    var: bootstrap_k3os
-
-- name: show iso url for {{bootstrap_k3os.arch}}
-  debug:
-    var: bootstrap_k3os.iso_url[bootstrap_k3os.arch]
+    arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+    ssh_keys: "{{ authorized_keys.stdout_lines }}"
+    timeservers: "{{ ntp_conf.stdout_lines}}"
+    password: "{{ root_hash.stdout }}"
+    boot_part: "{{ boot_device.stdout }}"
+    iso_url: # remove this when going to role
+      amd64: "{{ iso_url.amd64 }}"
+      arm64: "{{ iso_url.arm64 }}"
 
 - name: generate config path
   ansible.builtin.tempfile:
@@ -70,8 +61,8 @@
       --tty ttyS0
       --config {{ config_file.path }}
       --no-format
-      {{ bootstrap_k3os.boot_part }}
-      {{ bootstrap_k3os.iso_url[bootstrap_k3os.arch] }}
+      {{ boot_part }}
+      {{ iso_url[arch] }}
   register: install_result
 
 - name: show install output
