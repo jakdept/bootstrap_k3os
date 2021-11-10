@@ -46,8 +46,20 @@ k3os:
   token: {{ k3os_token }}
 {% endif %}
 
-  k3s_args:
+  k3s_args: # do note, k3os wants dns_k3s_args, not k3s_args
+{% if (k3s_args is defined) and k3s_args %}
+{% for arg in k3s_args %}
+  - {{ arg }}
+{% endfor %}
+{% else %}
   - server
+{% endif %}
   taints:
+{% if (k3s_taints is defined) and k3s_taints %}
+{% for each in k3s_taints %}
+  - {{ each }}
+{% endfor %}
+{% else %}
   - key1=value1:NoSchedule
   - key1=value1:NoExecute
+{% endif %}
