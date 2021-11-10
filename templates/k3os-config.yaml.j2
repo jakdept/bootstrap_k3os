@@ -40,7 +40,7 @@ k3os:
 #}
   password: {{ password }}
 {% if (k3os_server_url is defined) and k3os_server_url %}
-  server_url: https://{{ k3os_server_url }}:6443
+  server_url: {{ k3os_server_url }}
 {% endif %}
 {% if (k3os_token is defined) and k3os_token %}
   token: {{ k3os_token }}
