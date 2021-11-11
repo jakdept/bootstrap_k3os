@@ -54,12 +54,9 @@ k3os:
 {% else %}
   - server
 {% endif %}
-  taints:
 {% if (k3s_taints is defined) and k3s_taints %}
+  taints:
 {% for each in k3s_taints %}
   - {{ each }}
 {% endfor %}
-{% else %}
-  - key1=value1:NoSchedule
-  - key1=value1:NoExecute
 {% endif %}
