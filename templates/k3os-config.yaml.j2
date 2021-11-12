@@ -14,9 +14,9 @@ write_files: # template this
     IPv6=off
     MAC={{ ansible_default_ipv4.macaddress }}
 {% if (nameservers is defined) and nameservers %}
-    Nameservers={{ nameservers | join "," }}
+    Nameservers={{ nameservers | join(",") }}
 {% endif %}
-hostname: {{ ansible_fqdn}}
+hostname: {{ ansible_fqdn }}
 
 k3os:
   sysctl:
@@ -28,13 +28,12 @@ k3os:
   - {{ nameserver }}
 {% endfor %}
 {% endif %}
-{# {% if (timeservers is defined) and timeservers %}
+{% if (timeservers is defined) and timeservers %}
   ntp_servers:
 {% for timeserver in timeservers %}
   - {{ timeserver }}
 {% endfor %}
 {% endif %}
-#}
   password: {{ password }}
 {% if (k3os_server_url is defined) and k3os_server_url %}
   server_url: {{ k3os_server_url }}
