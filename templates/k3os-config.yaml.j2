@@ -14,10 +14,7 @@ write_files: # template this
     IPv6=off
     MAC={{ ansible_default_ipv4.macaddress }}
 {% if (nameservers is defined) and nameservers %}
-  dns_nameservers:
-{% for nameserver in nameservers %}
-    Nameservers={{ nameserver }}
-{% endfor %}
+    Nameservers={{ nameservers | join "," }}
 {% endif %}
 hostname: {{ ansible_fqdn}}
 
