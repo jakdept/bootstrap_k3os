@@ -5,23 +5,35 @@
   when: ssh_keys is not defined
   register: authorized_keys
   changed_when: false
-
-- name: get root password hash
-  shell: "awk -F: '/root/{print $2}' /etc/shadow"
-  when: password is not defined
-  register: root_hash
-  changed_when: false
+- name: set ssh keys
+  set_fact:
+    ssh_keys: "{{ authorized_keys.stdout_lines }}"
+  when: ssh_keys is not defined and authorized_keys.rc == 0
 
 - name: get ntp.conf
   shell: awk '/^pool/ {print $2}' /etc/ntp.conf
   when: timeservers is not defined
   register: ntp_conf
   changed_when: false
+- name: set ssh keys
+  set_fact:
+    timeservers: "{{ ntp_conf.stdout_lines}}"
+  when: timeservers is not defined and ntp_conf.rc == 0
 
 - name: get nameservers
   shell: awk '$1 == "nameserver" {print $2}' /etc/resolv.conf
   when: nameservers is not defined
   register: nameserver_conf
+  changed_when: false
+- name: set ssh keys
+  set_fact:
+    nameservers: "{{ nameserver_conf.stdout_lines }}"
+  when: nameservers is not defined and nameserver_conf.rc == 0
+
+- name: get root password hash
+  shell: "awk -F: '/root/{print $2}' /etc/shadow"
+  when: password is not defined
+  register: root_hash
   changed_when: false
 
 - name: get boot device
@@ -32,9 +44,6 @@
 - name: set all facts for bootstrap_k3os
   set_fact:
     arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
-    ssh_keys: "{{ authorized_keys.stdout_lines }}"
-    timeservers: "{{ ntp_conf.stdout_lines}}"
-    nameservers: "{{ nameserver_conf.stdout_lines }}"
     password: "{{ root_hash.stdout }}"
     boot_part: "{{ boot_device.stdout }}"
     iso_url: # remove this when going to role
